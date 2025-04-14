@@ -1,3 +1,4 @@
+# app2.py
 import streamlit as st
 import json
 import hashlib
@@ -10,6 +11,8 @@ from torchvision.models import ResNet50_Weights
 from transformers import ViTModel
 from PIL import Image
 import pickle
+import gdown
+import os
 
 # ------------------ AUTH ------------------
 def hash_password(password):
@@ -53,6 +56,14 @@ class HybridViTResNet(nn.Module):
 
         combined_features = torch.cat((resnet_features, vit_features), dim=1)
         return self.fc(combined_features)
+
+def download_model_if_needed():
+    file_id = "YOUR_FILE_ID_HERE"  # Replace with your real file ID from Drive
+    url = f"https://drive.google.com/uc?id={file_id}"
+    output = "hybrid_vit_resnet2.pth"
+    if not os.path.exists(output):
+        with st.spinner("Downloading model weights..."):
+            gdown.download(url, output, quiet=False)
 
 # ------------------ LOGIN ------------------
 def login_page():
@@ -144,6 +155,9 @@ def main():
     if "user" not in st.session_state:
         login_page()
         return
+
+    # Ensure model file is downloaded
+    download_model_if_needed()
 
     # Load models only after login
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
