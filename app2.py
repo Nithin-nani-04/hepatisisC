@@ -1,4 +1,5 @@
 # app2.py
+
 import streamlit as st
 import json
 import hashlib
@@ -29,7 +30,7 @@ def save_users(users):
     with open("users.json", "w") as f:
         json.dump(users, f, indent=4)
 
-# ------------------ MODEL ------------------
+# ------------------ MODEL CLASS ------------------
 class HybridViTResNet(nn.Module):
     def __init__(self, num_classes):
         super(HybridViTResNet, self).__init__()
@@ -57,15 +58,17 @@ class HybridViTResNet(nn.Module):
         combined_features = torch.cat((resnet_features, vit_features), dim=1)
         return self.fc(combined_features)
 
+# ------------------ DOWNLOAD MODEL ------------------
 def download_model_if_needed():
-    file_id = "15uX6U-dwmiCo-noPrnv51pzzkGmm4lXq"  # Replace with your real file ID from Drive
+    file_id = "15uX6U-dwmiCo-noPrnv51pzzkGmm4lXq"
     url = f"https://drive.google.com/uc?id={file_id}"
     output = "hybrid_vit_resnet2.pth"
+
     if not os.path.exists(output):
-        with st.spinner("Downloading model weights..."):
+        with st.spinner("🔄 Downloading model weights from Google Drive..."):
             gdown.download(url, output, quiet=False)
 
-# ------------------ LOGIN ------------------
+# ------------------ LOGIN PAGE ------------------
 def login_page():
     st.title("🔐 Login or Register")
     users = load_users()
@@ -78,24 +81,24 @@ def login_page():
         if st.button("Login"):
             if username in users and users[username] == hash_password(password):
                 st.session_state["user"] = username
-                st.success("Logged in!")
+                st.success("✅ Logged in!")
             else:
-                st.error("Invalid credentials.")
+                st.error("❌ Invalid credentials.")
 
     with tab2:
         new_user = st.text_input("New Username")
         new_pass = st.text_input("New Password", type="password")
         if st.button("Register"):
             if new_user in users:
-                st.warning("Username already exists!")
+                st.warning("⚠️ Username already exists!")
             else:
                 users[new_user] = hash_password(new_pass)
                 save_users(users)
-                st.success("User registered! Please login.")
+                st.success("✅ User registered! Please login.")
 
-# ------------------ NUMERIC PREDICTION ------------------
+# ------------------ NUMERICAL PREDICTION ------------------
 def numerical_prediction(log_model):
-    st.header("Step 1: Enter Patient Details")
+    st.header("🧪 Step 1: Enter Patient Details")
     with st.form("numerical_form"):
         col1, col2, col3 = st.columns(3)
         Age = col1.number_input("Age")
@@ -119,18 +122,18 @@ def numerical_prediction(log_model):
                          columns=["Age", "Sex", "ALB", "ALP", "ALT", "AST", "BIL", "CHE", "CHOL", "CREA", "GGT", "PROT"])
         try:
             pred = log_model.predict(X)[0]
-            st.success(f"Prediction: {'🟢 YES - Proceed to Imaging' if pred == 1 else '🔴 NO - Not Required'}")
+            st.success(f"🧾 Prediction: {'🟢 YES - Proceed to Imaging' if pred == 1 else '🔴 NO - Not Required'}")
         except Exception as e:
             st.error(f"Prediction failed: {e}")
 
-# ------------------ IMAGE PREDICTION ------------------
+# ------------------ IMAGE CLASSIFICATION ------------------
 def image_classification(model, device):
-    st.header("Step 2: Upload Liver CT Scan Image")
+    st.header("🖼️ Step 2: Upload Liver CT Scan Image")
     uploaded_img = st.file_uploader("Upload an Image (.jpg/.png)", type=["jpg", "png"])
 
     if uploaded_img:
         image = Image.open(uploaded_img).convert("RGB")
-        st.image(image, caption="Uploaded Image", width=300)
+        st.image(image, caption="🖼️ Uploaded Image", width=300)
 
         img_transform = transforms.Compose([
             transforms.Resize((224, 224)),
@@ -138,7 +141,7 @@ def image_classification(model, device):
             transforms.Normalize(mean=[0.5]*3, std=[0.5]*3)
         ])
 
-        with st.spinner("Classifying..."):
+        with st.spinner("🔬 Classifying..."):
             img_tensor = img_transform(image).unsqueeze(0).to(device)
             with torch.no_grad():
                 output = model(img_tensor)
@@ -146,7 +149,7 @@ def image_classification(model, device):
                 pred_class = torch.argmax(probs, dim=1).item()
 
             class_names = [" No Fibrosis", "Portal Fibrosis", "Periportal Fibrosis", "Septal Fibrosis", " Cirrhosis"]
-            st.success(f"🩻 Predicted Class: **{class_names[pred_class]}**")
+            st.success(f"🧠 Predicted Class: **{class_names[pred_class]}**")
 
 # ------------------ MAIN ------------------
 def main():
@@ -156,19 +159,24 @@ def main():
         login_page()
         return
 
-    # Ensure model file is downloaded
+    # Download model if needed
     download_model_if_needed()
 
-    # Load models only after login
+    # Load image classification model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = HybridViTResNet(num_classes=5).to(device)
     model.load_state_dict(torch.load("hybrid_vit_resnet2.pth", map_location=device))
     model.eval()
 
-    with open("log_reg_model983.pkl", "rb") as f:
-        log_model = pickle.load(f)
+    # Load logistic regression model from local
+    try:
+        with open("log_reg_model983.pkl", "rb") as f:
+            log_model = pickle.load(f)
+    except FileNotFoundError:
+        st.error("⚠️ Logistic Regression model file not found. Make sure 'log_reg_model983.pkl' is in the same folder.")
+        return
 
-    # Sidebar Menu
+    # Sidebar menu
     menu = st.sidebar.selectbox("📋 Menu", ["Numerical Prediction", "Image Classification", "Logout"])
 
     if menu == "Numerical Prediction":
