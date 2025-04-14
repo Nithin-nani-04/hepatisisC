@@ -134,7 +134,7 @@ def image_classification(model, device):
                 probs = F.softmax(output, dim=1)
                 pred_class = torch.argmax(probs, dim=1).item()
 
-            class_names = ["Class 0", "Class 1", "Class 2", "Class 3", "Class 4"]
+            class_names = [" No Fibrosis", "Portal Fibrosis", "Periportal Fibrosis", "Septal Fibrosis", " Cirrhosis"]
             st.success(f"🩻 Predicted Class: **{class_names[pred_class]}**")
 
 # ------------------ MAIN ------------------
