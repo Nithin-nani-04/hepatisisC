@@ -1,5 +1,5 @@
 # app2.py
-
+from huggingface_hub import hf_hub_download
 import streamlit as st
 import json
 import hashlib
@@ -165,7 +165,10 @@ def main():
     # Load image classification model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = HybridViTResNet(num_classes=5).to(device)
-    model.load_state_dict(torch.load("hybrid_vit_resnet2.pth", map_location=device))
+    repository_id = "Nithin-nani/1st_model"  # Replace with "Nithin-nani/1st_model" if that's correct
+    filename = "hybrid_vit_resnet2.pth" 
+    
+    model.load_state_dict(torch.load(hf_hub_download(repo_id=repository_id, filename=filename), map_location=device))
     model.eval()
 
     # Load logistic regression model from local
