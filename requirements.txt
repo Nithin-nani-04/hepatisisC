@@ -10,6 +10,7 @@ pandas
 torch
 torchvision
 transformers
+huggingface_hub
 vit-pytorch
 scipy
 scikit-learn
