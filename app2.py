@@ -58,7 +58,7 @@ class HybridViTResNet(nn.Module):
         return self.fc(combined_features)
 
 def download_model_if_needed():
-    file_id = "YOUR_FILE_ID_HERE"  # Replace with your real file ID from Drive
+    file_id = "15uX6U-dwmiCo-noPrnv51pzzkGmm4lXq"  # Replace with your real file ID from Drive
     url = f"https://drive.google.com/uc?id={file_id}"
     output = "hybrid_vit_resnet2.pth"
     if not os.path.exists(output):
